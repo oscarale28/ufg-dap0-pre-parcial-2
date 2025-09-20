@@ -1,11 +1,13 @@
+import fs from 'fs';
 import dotenv from 'dotenv';
 
-// Load environment variables
-const result = dotenv.config({path: '.env'});
-
-if(result.error) {
-  console.error('❌ Error loading .env file:', result.error);
-  process.exit(1);
+if (fs.existsSync('.env')) {
+  const result = dotenv.config({ path: '.env' });
+  if (result.error) {
+    console.warn('⚠️ Error cargando .env:', result.error);
+  } else {
+    console.log('✅ Variables de entorno cargadas desde .env');
+  }
 }
 
 export const {DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, PORT} = process.env;
