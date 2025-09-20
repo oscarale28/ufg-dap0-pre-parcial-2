@@ -98,3 +98,11 @@ preparcial-dap0-19-09/
 - `POST /api/juegos` - Crear nuevo juego
 - `PUT /api/juegos/:id` - Actualizar juego
 - `DELETE /api/juegos/:id` - Eliminar juego
+
+## 🚧 Retos y Dificultades
+
+Durante el desarrollo de este proyecto se enfrentaron varios desafíos técnicos y de implementación:
+
+- Configuración de empaquetado óptimo para ejecutar la aplicación a través de la web y escritorio.
+- Asegurar compatibilidad de Electron con ESModules. Se solventó creando el archivo `bootstrap.cjs` que importa dinámicamente el entrypoint `/electron/main.js`.
+- Conexión a base de datos, solucionado mediante la apertura de puertos en el firewall de la VPS utilizada para alojamiento de despliegues.
