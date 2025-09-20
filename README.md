@@ -22,7 +22,7 @@ Una aplicación sencilla para gestionar tu colección de videojuegos, disponible
 - PostgreSQL (v12 o superior)
 - npm o yarn
 
-## ⚙️ Instalación
+## ⚙️ Instalación local
 
 1. **Clona el repositorio**
    ```bash
@@ -35,42 +35,16 @@ Una aplicación sencilla para gestionar tu colección de videojuegos, disponible
    npm install
    ```
 
-3. **Configura la base de datos**
-   - Crea una base de datos PostgreSQL llamada `catalogo-juegos`
-   - Copia `.env.example` a `.env` y configura las variables:
-   ```env
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=catalogo_juegos
-   DB_USER=tu_usuario
-   DB_PASSWORD=tu_contraseña
-   PORT=3001
-   ```
+## 🗄️ Base de Datos
+El proyecto se conecta a una base de datos PostgreSQL desplegada en Dokploy. Para un correcto funcionamiento en **ambiente local**, copia .env.example a .env y configura las variables:
 
-4. **Ejecuta las migraciones**
-   ```sql
-   -- Ejecuta estos comandos en tu base de datos PostgreSQL
-   CREATE TABLE IF NOT EXISTS PLATAFORMA(
-       id serial primary key,
-       nombre varchar(50) unique not null
-   );
-
-   CREATE TABLE GENERO(
-       id serial primary key,
-       nombre varchar(100) unique not null
-   );
-
-   CREATE TABLE JUEGO(
-       id serial primary key,
-       titulo varchar(255) not null,
-       plataforma_id int not null references PLATAFORMA(id) on delete restrict,
-       genero_id int not null references GENERO(id) on delete restrict
-   );
-
-   INSERT INTO plataforma (nombre) VALUES ('PS5'), ('Xbox'), ('Switch'), ('PC'), ('Mobile');
-   INSERT INTO genero (nombre) VALUES ('RPG'), ('Shooter'), ('Aventura'), ('Plataforma'), ('Estrategia');
-   ```
-
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=catalogo_juegos
+DB_USER=tu_usuario
+DB_PASSWORD=tu_contraseña
+PORT=3001
+ 
 ## 🚀 Uso
 
 ### Modo Web
