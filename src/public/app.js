@@ -1,5 +1,7 @@
 // Estado global de la aplicación
 let games = [];
+let plataformas = [];
+let generos = [];
 let currentGameId = null;
 let isEditing = false;
 
@@ -19,8 +21,10 @@ const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
 // Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    loadGames();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadPlataformas();
+    await loadGeneros();
+    await loadGames();
     setupEventListeners();
 });
 
@@ -155,6 +159,64 @@ async function deleteGame(id) {
     }
 }
 
+async function loadPlataformas() {
+    try {
+        const response = await fetch('/api/plataformas');
+        const data = await response.json();
+        
+        if (data.success) {
+            plataformas = data.data;
+            populatePlataformasSelect();
+        } else {
+            showMessage('Error al cargar las plataformas: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error al cargar las plataformas:', error);
+        showMessage('Error de conexión al cargar las plataformas', 'error');
+    }
+}
+
+async function loadGeneros() {
+    try {
+        const response = await fetch('/api/generos');
+        const data = await response.json();
+        
+        if (data.success) {
+            generos = data.data;
+            populateGenerosSelect();
+        } else {
+            showMessage('Error al cargar los géneros: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error al cargar los géneros:', error);
+        showMessage('Error de conexión al cargar los géneros', 'error');
+    }
+}
+
+function populatePlataformasSelect() {
+    const select = document.getElementById('plataforma_id');
+    select.innerHTML = '<option value="">Seleccionar plataforma</option>';
+    
+    plataformas.forEach(plataforma => {
+        const option = document.createElement('option');
+        option.value = plataforma.id;
+        option.textContent = plataforma.nombre;
+        select.appendChild(option);
+    });
+}
+
+function populateGenerosSelect() {
+    const select = document.getElementById('genero_id');
+    select.innerHTML = '<option value="">Seleccionar género</option>';
+    
+    generos.forEach(genero => {
+        const option = document.createElement('option');
+        option.value = genero.id;
+        option.textContent = genero.nombre;
+        select.appendChild(option);
+    });
+}
+
 // Funciones de renderizado
 function renderGames() {
     if (games.length === 0) {
@@ -167,14 +229,13 @@ function renderGames() {
         return;
     }
 
+    gamesGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
     gamesGrid.innerHTML = games.map(game => `
         <div class="game-card">
             <h3 class="game-title">${escapeHtml(game.titulo)}</h3>
             <div class="game-info">
-                <p><strong>Plataforma:</strong> ${escapeHtml(game.plataforma)}</p>
-                ${game.genero ? `<p><strong>Género:</strong> ${escapeHtml(game.genero)}</p>` : ''}
-                ${game.anio_lanzamiento ? `<p><strong>Año:</strong> ${game.anio_lanzamiento}</p>` : ''}
-                ${game.desarrollador ? `<p><strong>Desarrollador:</strong> ${escapeHtml(game.desarrollador)}</p>` : ''}
+                <p><strong>Plataforma:</strong> ${escapeHtml(game.plataforma_nombre)}</p>
+                <p><strong>Género:</strong> ${escapeHtml(game.genero_nombre)}</p>
             </div>
             <div class="game-actions">
                 <button class="btn btn-edit" onclick="editGame(${game.id})">Editar</button>
@@ -211,26 +272,20 @@ function closeModal() {
 
 function fillForm(game) {
     document.getElementById('titulo').value = game.titulo || '';
-    document.getElementById('plataforma').value = game.plataforma || '';
-    document.getElementById('genero').value = game.genero || '';
-    document.getElementById('anio_lanzamiento').value = game.anio_lanzamiento || '';
-    document.getElementById('desarrollador').value = game.desarrollador || '';
-    document.getElementById('estado').value = game.estado || '';
+    document.getElementById('plataforma_id').value = game.plataforma_id || '';
+    document.getElementById('genero_id').value = game.genero_id || '';
 }
 
 function handleSave() {
     const formData = new FormData(gameForm);
     const gameData = {
         titulo: formData.get('titulo').trim(),
-        plataforma: formData.get('plataforma'),
-        genero: formData.get('genero').trim(),
-        anio_lanzamiento: formData.get('anio_lanzamiento') ? parseInt(formData.get('anio_lanzamiento')) : null,
-        desarrollador: formData.get('desarrollador').trim(),
-        estado: formData.get('estado')
+        plataforma_id: parseInt(formData.get('plataforma_id')),
+        genero_id: parseInt(formData.get('genero_id'))
     };
 
     // Validación básica
-    if (!gameData.titulo || !gameData.plataforma || !gameData.estado) {
+    if (!gameData.titulo || !gameData.plataforma_id || !gameData.genero_id) {
         showMessage('Por favor completa todos los campos requeridos', 'error');
         return;
     }
@@ -276,27 +331,57 @@ function showLoading() {
 }
 
 function showMessage(message, type) {
-    // Remover mensajes anteriores
-    const existingMessage = document.querySelector('.message');
-    if (existingMessage) {
-        existingMessage.remove();
+    // Crear contenedor de toast si no existe
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container';
+        document.body.appendChild(toastContainer);
     }
 
-    // Crear nuevo mensaje
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}`;
-    messageDiv.textContent = message;
+    // Crear nuevo toast
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
     
-    // Insertar después del header
-    const header = document.querySelector('header');
-    header.insertAdjacentElement('afterend', messageDiv);
+    // Crear contenido del toast
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <span class="toast-icon">${icon}</span>
+            <span class="toast-message">${message}</span>
+            <button class="toast-close">&times;</button>
+        </div>
+    `;
     
-    // Auto-remover después de 5 segundos
+    // Agregar al contenedor
+    toastContainer.appendChild(toast);
+    
+    // Animar entrada
     setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.remove();
+        toast.classList.add('toast-show');
+    }, 100);
+    
+    // Event listener para cerrar
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => {
+        removeToast(toast);
+    });
+    
+    // Auto-remover después de 4 segundos
+    setTimeout(() => {
+        if (toast.parentNode) {
+            removeToast(toast);
         }
-    }, 5000);
+    }, 4000);
+}
+
+function removeToast(toast) {
+    toast.classList.add('toast-hide');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 300);
 }
 
 function escapeHtml(text) {

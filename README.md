@@ -1,129 +1,140 @@
-# 🎮 Catálogo de Videojuegos
+# 🎮 ESTIM - Catálogo de Videojuegos
 
-Una aplicación para gestionar tu colección de videojuegos con versión web y desktop, compartiendo el mismo código base.
+Una aplicación moderna para gestionar tu colección de videojuegos, disponible tanto como aplicación web como aplicación de escritorio.
 
-## ✨ Características
+## 🚀 Características
 
-- **Doble plataforma**: Funciona tanto en navegador web como aplicación de escritorio
-- **CRUD completo**: Crear, leer, actualizar y eliminar videojuegos
-- **Interfaz moderna**: Diseño responsive con gradientes y animaciones
-- **Base de datos externa**: Preparado para conectar con tu base de datos
-- **API REST**: Endpoints bien estructurados para integración
+- **Gestión completa de videojuegos**: Crear, editar, eliminar y visualizar juegos
+- **Sistema de plataformas**: Gestiona diferentes plataformas (PS5, Xbox, Switch, PC, Mobile)
+- **Sistema de géneros**: Organiza juegos por géneros (RPG, Shooter, Aventura, etc.)
+- **Interfaz moderna**: Diseño glassmorphism con tema oscuro
+- **Notificaciones toast**: Feedback visual elegante para todas las acciones
+- **Doble modalidad**: Web y aplicación de escritorio con Electron
 
-## 🚀 Instalación
+## 🛠️ Tecnologías
 
-1. **Clonar el repositorio**
+- **Backend**: Node.js + Express
+- **Base de datos**: PostgreSQL
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Desktop**: Electron
+- **Estilos**: CSS moderno con glassmorphism
+
+## 📋 Requisitos
+
+- Node.js (v16 o superior)
+- PostgreSQL (v12 o superior)
+- npm o yarn
+
+## ⚙️ Instalación
+
+1. **Clona el repositorio**
    ```bash
-   git clone <tu-repositorio>
-   cd catalogo-juegos
+   git clone <repository-url>
+   cd preparcial-dap0-19-09
    ```
 
-2. **Instalar dependencias**
+2. **Instala las dependencias**
    ```bash
    npm install
    ```
 
-3. **Configurar base de datos**
-   - Edita `src/server.js` y reemplaza `DATABASE_URL` con tu conexión
-   - O modifica las funciones de la API para usar tu base de datos
+3. **Configura la base de datos**
+   - Crea una base de datos PostgreSQL llamada `catalogo-juegos`
+   - Copia `.env.example` a `.env` y configura las variables:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=catalogo_juegos
+   DB_USER=tu_usuario
+   DB_PASSWORD=tu_contraseña
+   PORT=3001
+   ```
 
-## 🎯 Uso
+4. **Ejecuta las migraciones**
+   ```sql
+   -- Ejecuta estos comandos en tu base de datos PostgreSQL
+   CREATE TABLE IF NOT EXISTS PLATAFORMA(
+       id serial primary key,
+       nombre varchar(50) unique not null
+   );
+
+   CREATE TABLE GENERO(
+       id serial primary key,
+       nombre varchar(100) unique not null
+   );
+
+   CREATE TABLE JUEGO(
+       id serial primary key,
+       titulo varchar(255) not null,
+       plataforma_id int not null references PLATAFORMA(id) on delete restrict,
+       genero_id int not null references GENERO(id) on delete restrict
+   );
+
+   INSERT INTO plataforma (nombre) VALUES ('PS5'), ('Xbox'), ('Switch'), ('PC'), ('Mobile');
+   INSERT INTO genero (nombre) VALUES ('RPG'), ('Shooter'), ('Aventura'), ('Plataforma'), ('Estrategia');
+   ```
+
+## 🚀 Uso
 
 ### Modo Web
 ```bash
 npm start
 ```
-Abre tu navegador en `http://localhost:3000`
+Abre tu navegador en `http://localhost:3001`
 
-### Modo Desktop
+### Modo Desktop (Electron)
 ```bash
 npm run electron
 ```
-Se abre la aplicación como escritorio
+Esto iniciará automáticamente el servidor Express y la aplicación Electron.
 
 ### Modo Desarrollo
 ```bash
 npm run dev
 ```
-Servidor con auto-reload para desarrollo
-
-## 📊 Estructura de Datos
-
-### Tabla `videojuegos`
-- `id` (INTEGER, PK, autoincrement)
-- `titulo` (TEXT, NOT NULL)
-- `plataforma` (TEXT: PS5, Xbox, Switch, PC)
-- `genero` (TEXT)
-- `anio_lanzamiento` (INTEGER)
-- `desarrollador` (TEXT)
-- `estado` (TEXT: Nuevo, En progreso, Terminado)
-
-## 🔌 API Endpoints
-
-- `GET /api/juegos` - Listar todos los videojuegos
-- `POST /api/juegos` - Crear nuevo videojuego
-- `PUT /api/juegos/:id` - Actualizar videojuego
-- `DELETE /api/juegos/:id` - Eliminar videojuego
-
-## 🛠️ Tecnologías
-
-- **Backend**: Node.js + Express
-- **Frontend**: HTML5 + CSS3 + JavaScript Vanilla
-- **Desktop**: Electron
-- **Base de datos**: Preparado para conexión externa
-- **Estilos**: CSS moderno con gradientes y animaciones
+Inicia el servidor con nodemon para desarrollo con recarga automática.
 
 ## 📁 Estructura del Proyecto
 
 ```
-catalogo-juegos/
-├── src/
-│   ├── server.js          # Servidor Express
-│   └── public/            # Frontend estático
-│       ├── index.html     # Página principal
-│       ├── styles.css     # Estilos
-│       └── app.js         # Lógica del frontend
+preparcial-dap0-19-09/
 ├── electron/
-│   └── main.js            # Configuración de Electron
-├── package.json           # Dependencias y scripts
-└── README.md             # Este archivo
+│   └── main.js              # Configuración de Electron
+├── src/
+│   ├── config.js            # Configuración de la aplicación
+│   ├── database.js          # Funciones de base de datos
+│   ├── server.js            # Servidor Express
+│   └── public/
+│       ├── index.html       # Interfaz principal
+│       ├── app.js           # Lógica del frontend
+│       └── styles.css       # Estilos CSS
+├── bootstrap.cjs            # Bootstrap para Electron
+├── package.json
+└── README.md
 ```
 
-## 🔧 Configuración de Base de Datos
+## 🔧 API Endpoints
 
-Para conectar con tu base de datos externa, modifica las funciones en `src/server.js`:
+### Plataformas
+- `GET /api/plataformas` - Listar todas las plataformas
+- `GET /api/plataformas/:id` - Obtener plataforma por ID
+- `POST /api/plataformas` - Crear nueva plataforma
+- `PUT /api/plataformas/:id` - Actualizar plataforma
+- `DELETE /api/plataformas/:id` - Eliminar plataforma
 
-```javascript
-// Reemplaza las funciones mock con llamadas reales a tu DB
-async function loadGames() {
-    // Tu lógica de base de datos aquí
-}
+### Géneros
+- `GET /api/generos` - Listar todos los géneros
+- `GET /api/generos/:id` - Obtener género por ID
+- `POST /api/generos` - Crear nuevo género
+- `PUT /api/generos/:id` - Actualizar género
+- `DELETE /api/generos/:id` - Eliminar género
 
-async function createGame(gameData) {
-    // Tu lógica de base de datos aquí
-}
-```
-
-## 🎨 Personalización
-
-- **Colores**: Modifica las variables CSS en `styles.css`
-- **Campos**: Agrega nuevos campos en el formulario y la API
-- **Validaciones**: Extiende las validaciones en `app.js`
-
-## 📱 Compatibilidad
-
-- **Web**: Todos los navegadores modernos
-- **Desktop**: Windows, macOS, Linux
-- **Responsive**: Móviles y tablets
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-MIT License - ver archivo LICENSE para detalles
+### Juegos
+- `GET /api/juegos` - Listar todos los juegos
+- `GET /api/juegos/:id` - Obtener juego por ID
+- `POST /api/juegos` - Crear nuevo juego
+- `PUT /api/juegos/:id` - Actualizar juego
+- `DELETE /api/juegos/:id` - Eliminar juego
+- `GET /api/juegos/plataforma/:plataforma_id` - Filtrar por plataforma
+- `GET /api/juegos/genero/:genero_id` - Filtrar por género
+- `GET /api/juegos/search/:searchTerm` - Buscar por título

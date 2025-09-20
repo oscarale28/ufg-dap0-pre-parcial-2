@@ -30,5 +30,5 @@ export const dbConfig = {
 
 // Server configuration
 export const serverConfig = {
-  port: PORT || 3000,
+  port: PORT || 3001,
 };

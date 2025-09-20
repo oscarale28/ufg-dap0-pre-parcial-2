@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Videojuegos</title>
+    <title>ESTIM</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -13,7 +13,7 @@
         </div>
 
         <header>
-            <h1>🎮 Catálogo de Videojuegos</h1>
+            <h1>🎮 ESTIM</h1>
             <button id="addGameBtn" class="btn btn-primary">+ Agregar Juego</button>
         </header>
 
@@ -36,29 +36,19 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="plataforma">Plataforma *</label>
-                            <select id="plataforma" name="plataforma" required>
+                            <label for="plataforma_id">Plataforma *</label>
+                            <select id="plataforma_id" name="plataforma_id" required>
                                 <option value="">Seleccionar plataforma</option>
-                                <option value="PS5">PlayStation 5</option>
-                                <option value="Xbox">Xbox</option>
-                                <option value="Switch">Nintendo Switch</option>
-                                <option value="PC">PC</option>
+                                <!-- Las opciones se cargarán dinámicamente -->
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="genero">Género</label>
-                            <input type="text" id="genero" name="genero" placeholder="Ej: Aventura, Acción, RPG...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="anio_lanzamiento">Año de Lanzamiento</label>
-                            <input type="number" id="anio_lanzamiento" name="anio_lanzamiento" min="1970" max="2030">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="desarrollador">Desarrollador</label>
-                            <input type="text" id="desarrollador" name="desarrollador">
+                            <label for="genero_id">Género *</label>
+                            <select id="genero_id" name="genero_id" required>
+                                <option value="">Seleccionar género</option>
+                                <!-- Las opciones se cargarán dinámicamente -->
+                            </select>
                         </div>
                         
                         <div class="form-actions">

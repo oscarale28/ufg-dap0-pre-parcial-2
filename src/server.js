@@ -31,8 +31,351 @@ async function startServer() {
   }
 }
 
-// API Routes
-// GET /api/juegos - Listar todos los videojuegos
+// ========== PLATAFORMA API ROUTES ==========
+
+// GET /api/plataformas - Listar todas las plataformas
+app.get('/api/plataformas', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const plataformas = await db.getAllPlataformas();
+    res.json({
+      success: true,
+      data: plataformas
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener las plataformas',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/plataformas/:id - Obtener plataforma por ID
+app.get('/api/plataformas/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const plataforma = await db.getPlataformaById(id);
+    
+    if (!plataforma) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plataforma no encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: plataforma
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener la plataforma',
+      error: error.message
+    });
+  }
+});
+
+// POST /api/plataformas - Crear nueva plataforma
+app.post('/api/plataformas', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const { nombre } = req.body;
+    
+    if (!nombre) {
+      return res.status(400).json({
+        success: false,
+        message: 'El nombre es requerido'
+      });
+    }
+
+    const nuevaPlataforma = await db.createPlataforma({ nombre });
+    
+    res.status(201).json({
+      success: true,
+      data: nuevaPlataforma,
+      message: 'Plataforma creada exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al crear la plataforma',
+      error: error.message
+    });
+  }
+});
+
+// PUT /api/plataformas/:id - Actualizar plataforma
+app.put('/api/plataformas/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const { nombre } = req.body;
+    
+    if (!nombre) {
+      return res.status(400).json({
+        success: false,
+        message: 'El nombre es requerido'
+      });
+    }
+
+    const plataformaActualizada = await db.updatePlataforma(id, { nombre });
+    
+    if (!plataformaActualizada) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plataforma no encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: plataformaActualizada,
+      message: 'Plataforma actualizada exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al actualizar la plataforma',
+      error: error.message
+    });
+  }
+});
+
+// DELETE /api/plataformas/:id - Eliminar plataforma
+app.delete('/api/plataformas/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const plataformaEliminada = await db.deletePlataforma(id);
+    
+    if (!plataformaEliminada) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plataforma no encontrada'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: plataformaEliminada,
+      message: 'Plataforma eliminada exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al eliminar la plataforma',
+      error: error.message
+    });
+  }
+});
+
+// ========== GENERO API ROUTES ==========
+
+// GET /api/generos - Listar todos los géneros
+app.get('/api/generos', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const generos = await db.getAllGeneros();
+    res.json({
+      success: true,
+      data: generos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener los géneros',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/generos/:id - Obtener género por ID
+app.get('/api/generos/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const genero = await db.getGeneroById(id);
+    
+    if (!genero) {
+      return res.status(404).json({
+        success: false,
+        message: 'Género no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: genero
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener el género',
+      error: error.message
+    });
+  }
+});
+
+// POST /api/generos - Crear nuevo género
+app.post('/api/generos', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const { nombre } = req.body;
+    
+    if (!nombre) {
+      return res.status(400).json({
+        success: false,
+        message: 'El nombre es requerido'
+      });
+    }
+
+    const nuevoGenero = await db.createGenero({ nombre });
+    
+    res.status(201).json({
+      success: true,
+      data: nuevoGenero,
+      message: 'Género creado exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al crear el género',
+      error: error.message
+    });
+  }
+});
+
+// PUT /api/generos/:id - Actualizar género
+app.put('/api/generos/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const { nombre } = req.body;
+    
+    if (!nombre) {
+      return res.status(400).json({
+        success: false,
+        message: 'El nombre es requerido'
+      });
+    }
+
+    const generoActualizado = await db.updateGenero(id, { nombre });
+    
+    if (!generoActualizado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Género no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: generoActualizado,
+      message: 'Género actualizado exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al actualizar el género',
+      error: error.message
+    });
+  }
+});
+
+// DELETE /api/generos/:id - Eliminar género
+app.delete('/api/generos/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const generoEliminado = await db.deleteGenero(id);
+    
+    if (!generoEliminado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Género no encontrado'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: generoEliminado,
+      message: 'Género eliminado exitosamente'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al eliminar el género',
+      error: error.message
+    });
+  }
+});
+
+// ========== JUEGO API ROUTES ==========
+
+// GET /api/juegos - Listar todos los juegos
 app.get('/api/juegos', async (req, res) => {
   try {
     if (!dbInitialized) {
@@ -56,6 +399,39 @@ app.get('/api/juegos', async (req, res) => {
   }
 });
 
+// GET /api/juegos/:id - Obtener juego por ID
+app.get('/api/juegos/:id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const id = parseInt(req.params.id);
+    const juego = await db.getJuegoById(id);
+    
+    if (!juego) {
+      return res.status(404).json({
+        success: false,
+        message: 'Juego no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: juego
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener el juego',
+      error: error.message
+    });
+  }
+});
+
 // POST /api/juegos - Crear nuevo juego
 app.post('/api/juegos', async (req, res) => {
   try {
@@ -66,64 +442,36 @@ app.post('/api/juegos', async (req, res) => {
       });
     }
 
-    const videojuegos = await db.getAllJuegos();
-    res.json({
-      success: true,
-      data: videojuegos
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener los videojuegos',
-      error: error.message
-    });
-  }
-});
-
-// POST /api/juegos - Crear nuevo videojuego
-app.post('/api/juegos', async (req, res) => {
-  try {
-    if (!dbInitialized) {
-      return res.status(503).json({
-        success: false,
-        message: 'Database not initialized'
-      });
-    }
-
-    const { titulo, plataforma, genero, anio_lanzamiento, desarrollador, estado } = req.body;
+    const { titulo, plataforma_id, genero_id } = req.body;
     
-    // Validación básica
-    if (!titulo || !plataforma) {
+    if (!titulo || !plataforma_id || !genero_id) {
       return res.status(400).json({
         success: false,
-        message: 'Título y plataforma son requeridos'
+        message: 'Título, plataforma_id y genero_id son requeridos'
       });
     }
 
-    const nuevoJuego = await db.createVideojuego({
+    const nuevoJuego = await db.createJuego({
       titulo,
-      plataforma,
-      genero: genero || '',
-      anio_lanzamiento: anio_lanzamiento || null,
-      desarrollador: desarrollador || '',
-      estado: estado || 'disponible'
+      plataforma_id: parseInt(plataforma_id),
+      genero_id: parseInt(genero_id)
     });
     
     res.status(201).json({
       success: true,
       data: nuevoJuego,
-      message: 'Videojuego creado exitosamente'
+      message: 'Juego creado exitosamente'
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al crear el videojuego',
+      message: 'Error al crear el juego',
       error: error.message
     });
   }
 });
 
-// PUT /api/juegos/:id - Actualizar videojuego
+// PUT /api/juegos/:id - Actualizar juego
 app.put('/api/juegos/:id', async (req, res) => {
   try {
     if (!dbInitialized) {
@@ -134,41 +482,43 @@ app.put('/api/juegos/:id', async (req, res) => {
     }
 
     const id = parseInt(req.params.id);
-    const { titulo, plataforma, genero, anio_lanzamiento, desarrollador, estado } = req.body;
+    const { titulo, plataforma_id, genero_id } = req.body;
     
-    // Verificar que el videojuego existe
-    const existingGame = await db.getVideojuegoById(id);
-    if (!existingGame) {
-      return res.status(404).json({
+    if (!titulo || !plataforma_id || !genero_id) {
+      return res.status(400).json({
         success: false,
-        message: 'Videojuego no encontrado'
+        message: 'Título, plataforma_id y genero_id son requeridos'
       });
     }
 
-    const updatedGame = await db.updateVideojuego(id, {
-      titulo: titulo || existingGame.titulo,
-      plataforma: plataforma || existingGame.plataforma,
-      genero: genero !== undefined ? genero : existingGame.genero,
-      anio_lanzamiento: anio_lanzamiento !== undefined ? anio_lanzamiento : existingGame.anio_lanzamiento,
-      desarrollador: desarrollador !== undefined ? desarrollador : existingGame.desarrollador,
-      estado: estado || existingGame.estado
+    const juegoActualizado = await db.updateJuego(id, {
+      titulo,
+      plataforma_id: parseInt(plataforma_id),
+      genero_id: parseInt(genero_id)
     });
+    
+    if (!juegoActualizado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Juego no encontrado'
+      });
+    }
 
     res.json({
       success: true,
-      data: updatedGame,
-      message: 'Videojuego actualizado exitosamente'
+      data: juegoActualizado,
+      message: 'Juego actualizado exitosamente'
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al actualizar el videojuego',
+      message: 'Error al actualizar el juego',
       error: error.message
     });
   }
 });
 
-// DELETE /api/juegos/:id - Eliminar videojuego
+// DELETE /api/juegos/:id - Eliminar juego
 app.delete('/api/juegos/:id', async (req, res) => {
   try {
     if (!dbInitialized) {
@@ -179,25 +529,102 @@ app.delete('/api/juegos/:id', async (req, res) => {
     }
 
     const id = parseInt(req.params.id);
-    
-    const juegoEliminado = await db.deleteVideojuego(id);
+    const juegoEliminado = await db.deleteJuego(id);
     
     if (!juegoEliminado) {
       return res.status(404).json({
         success: false,
-        message: 'Videojuego no encontrado'
+        message: 'Juego no encontrado'
       });
     }
     
     res.json({
       success: true,
       data: juegoEliminado,
-      message: 'Videojuego eliminado exitosamente'
+      message: 'Juego eliminado exitosamente'
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al eliminar el videojuego',
+      message: 'Error al eliminar el juego',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/juegos/plataforma/:plataforma_id - Obtener juegos por plataforma
+app.get('/api/juegos/plataforma/:plataforma_id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const plataforma_id = parseInt(req.params.plataforma_id);
+    const juegos = await db.getJuegosByPlataforma(plataforma_id);
+    
+    res.json({
+      success: true,
+      data: juegos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener juegos por plataforma',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/juegos/genero/:genero_id - Obtener juegos por género
+app.get('/api/juegos/genero/:genero_id', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const genero_id = parseInt(req.params.genero_id);
+    const juegos = await db.getJuegosByGenero(genero_id);
+    
+    res.json({
+      success: true,
+      data: juegos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener juegos por género',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/juegos/search/:searchTerm - Buscar juegos por título
+app.get('/api/juegos/search/:searchTerm', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not initialized'
+      });
+    }
+
+    const searchTerm = req.params.searchTerm;
+    const juegos = await db.searchJuegosByTitle(searchTerm);
+    
+    res.json({
+      success: true,
+      data: juegos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al buscar juegos',
       error: error.message
     });
   }

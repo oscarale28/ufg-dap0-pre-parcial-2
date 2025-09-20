@@ -1,12 +1,17 @@
-const { app, BrowserWindow, Menu } = require('electron');
-const path = require('path');
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const isDev = process.env.NODE_ENV === 'development';
 
-// Keep a global reference of the window object
 let mainWindow;
 
 function createWindow() {
-    // Create the browser window
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -17,15 +22,67 @@ function createWindow() {
             contextIsolation: true,
             enableRemoteModule: false
         },
-        icon: path.join(__dirname, 'assets', 'icon.png'), // Optional: add an icon
+        icon: path.join(__dirname, 'assets', 'icon.png'),
         titleBarStyle: 'default',
-        show: false // Don't show until ready
+        show: false
     });
 
-    // Load the app
-    const startUrl = isDev 
-        ? 'http://localhost:3000' 
-        : `file://${path.join(__dirname, '../src/public/index.html')}`;
+    // Load the app - always connect to localhost server
+    const startUrl = 'http://localhost:3000';
+    
+    // Handle connection errors
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        console.error('Failed to load:', errorDescription);
+        
+        // Show error page if server is not running
+        if (errorCode === -2) { // ERR_FAILED
+            mainWindow.loadURL(`data:text/html,
+                <html>
+                    <head>
+                        <title>Server Not Running</title>
+                        <style>
+                            body { 
+                                font-family: Arial, sans-serif; 
+                                display: flex; 
+                                justify-content: center; 
+                                align-items: center; 
+                                height: 100vh; 
+                                margin: 0; 
+                                background: #1a1a1a; 
+                                color: white; 
+                            }
+                            .error-container { 
+                                text-align: center; 
+                                padding: 2rem; 
+                                border: 1px solid #333; 
+                                border-radius: 8px; 
+                                background: #2a2a2a; 
+                            }
+                            .retry-btn { 
+                                background: #007acc; 
+                                color: white; 
+                                border: none; 
+                                padding: 10px 20px; 
+                                border-radius: 4px; 
+                                cursor: pointer; 
+                                margin-top: 1rem; 
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="error-container">
+                            <h2>🚫 Server Not Running</h2>
+                            <p>The Express server is not running on localhost:3000</p>
+                            <p>Please start the server first:</p>
+                            <code>npm start</code>
+                            <br><br>
+                            <button class="retry-btn" onclick="location.reload()">Retry</button>
+                        </div>
+                    </body>
+                </html>
+            `);
+        }
+    });
     
     mainWindow.loadURL(startUrl);
 
@@ -46,7 +103,7 @@ function createWindow() {
 
     // Handle external links
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        require('electron').shell.openExternal(url);
+        shell.openExternal(url);
         return { action: 'deny' };
     });
 }
@@ -78,7 +135,7 @@ app.on('window-all-closed', () => {
 app.on('web-contents-created', (event, contents) => {
     contents.on('new-window', (event, navigationUrl) => {
         event.preventDefault();
-        require('electron').shell.openExternal(navigationUrl);
+        shell.openExternal(navigationUrl);
     });
 });
 
@@ -153,7 +210,6 @@ function createMenu() {
                 {
                     label: 'Acerca de Catálogo de Videojuegos',
                     click: () => {
-                        const { dialog } = require('electron');
                         dialog.showMessageBox(mainWindow, {
                             type: 'info',
                             title: 'Acerca de',
@@ -201,4 +257,4 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 });
 
 // Export for potential use in other files
-module.exports = { createWindow };
+export { createWindow };
