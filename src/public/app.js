@@ -11,7 +11,7 @@ const gameModal = document.getElementById('gameModal');
 const deleteModal = document.getElementById('deleteModal');
 const gameForm = document.getElementById('gameForm');
 const modalTitle = document.getElementById('modalTitle');
-const gameToDelete = document.getElementById('gameToDelete');
+const deleteModalBody = document.getElementById('deleteModalBody');
 
 // Botones
 const addGameBtn = document.getElementById('addGameBtn');
@@ -36,7 +36,6 @@ function setupEventListeners() {
 
     // Botones del modal
     cancelBtn.addEventListener('click', closeModal);
-    saveBtn.addEventListener('click', handleSave);
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
     confirmDeleteBtn.addEventListener('click', handleDelete);
 
@@ -128,6 +127,7 @@ async function updateGame(id, gameData) {
                 games[index] = data.data;
                 renderGames();
             }
+            renderGames();
             showMessage('Videojuego actualizado exitosamente', 'success');
             closeModal();
         } else {
@@ -300,7 +300,9 @@ function handleSave() {
 // Funciones de eliminación
 function confirmDelete(id, title) {
     currentGameId = id;
-    gameToDelete.textContent = title;
+    deleteModalBody.innerHTML = `
+        <p>¿Estás seguro de querer eliminar el videojuego <strong>${title}</strong>?</p>
+    `;
     deleteModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
 }

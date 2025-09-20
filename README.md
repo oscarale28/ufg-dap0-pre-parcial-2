@@ -1,20 +1,17 @@
 # 🎮 ESTIM - Catálogo de Videojuegos
 
-Una aplicación moderna para gestionar tu colección de videojuegos, disponible tanto como aplicación web como aplicación de escritorio.
+Una aplicación sencilla para gestionar tu colección de videojuegos, disponible tanto como aplicación web como aplicación de escritorio.
 
 ## 🚀 Características
 
 - **Gestión completa de videojuegos**: Crear, editar, eliminar y visualizar juegos
-- **Sistema de plataformas**: Gestiona diferentes plataformas (PS5, Xbox, Switch, PC, Mobile)
-- **Sistema de géneros**: Organiza juegos por géneros (RPG, Shooter, Aventura, etc.)
-- **Interfaz moderna**: Diseño glassmorphism con tema oscuro
 - **Notificaciones toast**: Feedback visual elegante para todas las acciones
 - **Doble modalidad**: Web y aplicación de escritorio con Electron
 
 ## 🛠️ Tecnologías
 
 - **Backend**: Node.js + Express
-- **Base de datos**: PostgreSQL
+- **Base de datos**: PostgreSQL desplegada en Dokploy
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Desktop**: Electron
 - **Estilos**: CSS moderno con glassmorphism
@@ -80,7 +77,7 @@ Una aplicación moderna para gestionar tu colección de videojuegos, disponible 
 ```bash
 npm start
 ```
-Abre tu navegador en `http://localhost:3001`
+Abre tu navegador en `http://localhost:3000`
 
 ### Modo Desktop (Electron)
 ```bash
@@ -117,17 +114,9 @@ preparcial-dap0-19-09/
 
 ### Plataformas
 - `GET /api/plataformas` - Listar todas las plataformas
-- `GET /api/plataformas/:id` - Obtener plataforma por ID
-- `POST /api/plataformas` - Crear nueva plataforma
-- `PUT /api/plataformas/:id` - Actualizar plataforma
-- `DELETE /api/plataformas/:id` - Eliminar plataforma
 
 ### Géneros
 - `GET /api/generos` - Listar todos los géneros
-- `GET /api/generos/:id` - Obtener género por ID
-- `POST /api/generos` - Crear nuevo género
-- `PUT /api/generos/:id` - Actualizar género
-- `DELETE /api/generos/:id` - Eliminar género
 
 ### Juegos
 - `GET /api/juegos` - Listar todos los juegos
@@ -135,6 +124,3 @@ preparcial-dap0-19-09/
 - `POST /api/juegos` - Crear nuevo juego
 - `PUT /api/juegos/:id` - Actualizar juego
 - `DELETE /api/juegos/:id` - Eliminar juego
-- `GET /api/juegos/plataforma/:plataforma_id` - Filtrar por plataforma
-- `GET /api/juegos/genero/:genero_id` - Filtrar por género
-- `GET /api/juegos/search/:searchTerm` - Buscar por título
