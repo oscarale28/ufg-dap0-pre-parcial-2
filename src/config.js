@@ -10,11 +10,10 @@ if (fs.existsSync('.env')) {
   }
 }
 
-export const {DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, PORT} = process.env;
+export const {DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, PORT, AUTH_USER, AUTH_PASSWORD, JWT_SECRET} = process.env;
 
 if(!DB_HOST || !DB_PORT || !DB_NAME || !DB_USER || !DB_PASSWORD || !PORT) {
-  console.error('❌ Error loading .env file:', result.error);
-  console.log(process.env);
+  console.error('❌ Variables de entorno requeridas faltantes. Verifica tu archivo .env');
   process.exit(1);
 }
 
@@ -33,4 +32,13 @@ export const dbConfig = {
 // Server configuration
 export const serverConfig = {
   port: PORT || 3000,
+};
+
+// Auth configuration (simple)
+export const authConfig = {
+  username: AUTH_USER || 'admin',
+  // Puede ser un texto plano o un hash bcrypt
+  password: AUTH_PASSWORD || 'admin123',
+  jwtSecret: JWT_SECRET || 'change-this-secret-in-env',
+  tokenExpiresIn: '8h'
 };
