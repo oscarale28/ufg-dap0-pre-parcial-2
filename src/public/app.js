@@ -4,12 +4,16 @@ let plataformas = [];
 let generos = [];
 let currentGameId = null;
 let isEditing = false;
+let authToken = localStorage.getItem('authToken') || null;
+let isAuthenticated = !!authToken;
 
 // Elementos del DOM
 const gamesGrid = document.getElementById('gamesGrid');
 const gameModal = document.getElementById('gameModal');
 const deleteModal = document.getElementById('deleteModal');
+const loginModal = document.getElementById('loginModal');
 const gameForm = document.getElementById('gameForm');
+const loginForm = document.getElementById('loginForm');
 const modalTitle = document.getElementById('modalTitle');
 const deleteModalBody = document.getElementById('deleteModalBody');
 
@@ -19,9 +23,15 @@ const cancelBtn = document.getElementById('cancelBtn');
 const saveBtn = document.getElementById('saveBtn');
 const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const loginBtn = document.getElementById('loginBtn');
+const cancelLoginBtn = document.getElementById('cancelLoginBtn');
+const submitLoginBtn = document.getElementById('submitLoginBtn');
+const exportJsonBtn = document.getElementById('exportJsonBtn');
+const exportCsvBtn = document.getElementById('exportCsvBtn');
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', async () => {
+    updateUIForAuth();
     await loadPlataformas();
     await loadGeneros();
     await loadGames();
@@ -31,6 +41,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupEventListeners() {
     // Botón agregar juego
     addGameBtn.addEventListener('click', () => {
+        if (!isAuthenticated) {
+            showMessage('Debes iniciar sesión para agregar juegos', 'error');
+            openLoginModal();
+            return;
+        }
         openModal();
     });
 
@@ -39,6 +54,15 @@ function setupEventListeners() {
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
     confirmDeleteBtn.addEventListener('click', handleDelete);
 
+    // Botones de login
+    loginBtn.addEventListener('click', openLoginModal);
+    cancelLoginBtn.addEventListener('click', closeLoginModal);
+    submitLoginBtn.addEventListener('click', handleLogin);
+
+    // Botones de exportación
+    exportJsonBtn.addEventListener('click', () => exportData('json'));
+    exportCsvBtn.addEventListener('click', () => exportData('csv'));
+
     // Cerrar modales con X
     document.querySelectorAll('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', (e) => {
@@ -46,6 +70,8 @@ function setupEventListeners() {
                 closeModal();
             } else if (e.target.closest('#deleteModal')) {
                 closeDeleteModal();
+            } else if (e.target.closest('#loginModal')) {
+                closeLoginModal();
             }
         });
     });
@@ -56,6 +82,8 @@ function setupEventListeners() {
             closeModal();
         } else if (e.target === deleteModal) {
             closeDeleteModal();
+        } else if (e.target === loginModal) {
+            closeLoginModal();
         }
     });
 
@@ -63,6 +91,11 @@ function setupEventListeners() {
     gameForm.addEventListener('submit', (e) => {
         e.preventDefault();
         handleSave();
+    });
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLogin();
     });
 }
 
@@ -90,6 +123,7 @@ async function createGame(gameData) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(gameData)
         });
@@ -102,7 +136,12 @@ async function createGame(gameData) {
             showMessage('Videojuego creado exitosamente', 'success');
             closeModal();
         } else {
-            showMessage('Error al crear el videojuego: ' + data.message, 'error');
+            if (response.status === 401) {
+                showMessage('Sesión expirada. Por favor inicia sesión nuevamente', 'error');
+                logout();
+            } else {
+                showMessage('Error al crear el videojuego: ' + data.message, 'error');
+            }
         }
     } catch (error) {
         showMessage('Error de conexión: ' + error.message, 'error');
@@ -115,6 +154,7 @@ async function updateGame(id, gameData) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(gameData)
         });
@@ -131,7 +171,12 @@ async function updateGame(id, gameData) {
             showMessage('Videojuego actualizado exitosamente', 'success');
             closeModal();
         } else {
-            showMessage('Error al actualizar el videojuego: ' + data.message, 'error');
+            if (response.status === 401) {
+                showMessage('Sesión expirada. Por favor inicia sesión nuevamente', 'error');
+                logout();
+            } else {
+                showMessage('Error al actualizar el videojuego: ' + data.message, 'error');
+            }
         }
     } catch (error) {
         showMessage('Error de conexión: ' + error.message, 'error');
@@ -141,7 +186,10 @@ async function updateGame(id, gameData) {
 async function deleteGame(id) {
     try {
         const response = await fetch(`/api/juegos/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
         });
         
         const data = await response.json();
@@ -152,7 +200,12 @@ async function deleteGame(id) {
             showMessage('Videojuego eliminado exitosamente', 'success');
             closeDeleteModal();
         } else {
-            showMessage('Error al eliminar el videojuego: ' + data.message, 'error');
+            if (response.status === 401) {
+                showMessage('Sesión expirada. Por favor inicia sesión nuevamente', 'error');
+                logout();
+            } else {
+                showMessage('Error al eliminar el videojuego: ' + data.message, 'error');
+            }
         }
     } catch (error) {
         showMessage('Error de conexión: ' + error.message, 'error');
@@ -299,6 +352,11 @@ function handleSave() {
 
 // Funciones de eliminación
 function confirmDelete(id, title) {
+    if (!isAuthenticated) {
+        showMessage('Debes iniciar sesión para eliminar juegos', 'error');
+        openLoginModal();
+        return;
+    }
     currentGameId = id;
     deleteModalBody.innerHTML = `
         <p>¿Estás seguro de querer eliminar el videojuego <strong>${title}</strong>?</p>
@@ -321,6 +379,11 @@ function handleDelete() {
 
 // Funciones de edición
 function editGame(id) {
+    if (!isAuthenticated) {
+        showMessage('Debes iniciar sesión para editar juegos', 'error');
+        openLoginModal();
+        return;
+    }
     const game = games.find(g => g.id === id);
     if (game) {
         openModal(game);
@@ -390,6 +453,99 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Funciones de autenticación
+async function handleLogin() {
+    const formData = new FormData(loginForm);
+    const username = formData.get('username').trim();
+    const password = formData.get('password');
+
+    if (!username || !password) {
+        showMessage('Por favor completa todos los campos', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            authToken = data.token;
+            isAuthenticated = true;
+            localStorage.setItem('authToken', authToken);
+            showMessage('Sesión iniciada exitosamente', 'success');
+            closeLoginModal();
+            updateUIForAuth();
+        } else {
+            showMessage('Credenciales inválidas', 'error');
+        }
+    } catch (error) {
+        showMessage('Error de conexión: ' + error.message, 'error');
+    }
+}
+
+function logout() {
+    authToken = null;
+    isAuthenticated = false;
+    localStorage.removeItem('authToken');
+    updateUIForAuth();
+    showMessage('Sesión cerrada', 'info');
+}
+
+function updateUIForAuth() {
+    if (isAuthenticated) {
+        loginBtn.textContent = '🔓 Logout';
+        loginBtn.onclick = logout;
+    } else {
+        loginBtn.textContent = '🔐 Login';
+        loginBtn.onclick = openLoginModal;
+    }
+}
+
+// Funciones de modales de login
+function openLoginModal() {
+    loginModal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    loginForm.reset();
+}
+
+function closeLoginModal() {
+    loginModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Funciones de exportación
+async function exportData(format) {
+    try {
+        const endpoint = format === 'csv' ? '/api/export/juegos.csv' : '/api/export/juegos';
+        const response = await fetch(endpoint);
+        
+        if (!response.ok) {
+            throw new Error('Error al exportar datos');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `juegos.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showMessage(`Datos exportados como ${format.toUpperCase()}`, 'success');
+    } catch (error) {
+        showMessage('Error al exportar datos: ' + error.message, 'error');
+    }
 }
 
 // Funciones globales para los botones inline

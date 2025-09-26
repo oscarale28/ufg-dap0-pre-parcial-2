@@ -2,8 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { serverConfig } from './config.js';
+import { serverConfig, authConfig } from './config.js';
 import { db, initializeDatabase } from './database.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +32,52 @@ async function startServer() {
     process.exit(1);
   }
 }
+
+// ========== AUTH ========== 
+function authenticate(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Token no proporcionado' });
+  }
+  try {
+    const payload = jwt.verify(token, authConfig.jwtSecret);
+    req.user = payload;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Token inválido' });
+  }
+}
+
+// POST /api/login - Autenticación simple
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
+  }
+  try {
+    const configuredUser = authConfig.username;
+    const configuredPassword = authConfig.password;
+
+    const usernameValid = username === configuredUser;
+    let passwordValid = false;
+    // Si AUTH_PASSWORD parece un hash bcrypt (comienza con $2a|$2b|$2y$), usamos compare
+    if (/^\$2[aby]\$/.test(configuredPassword)) {
+      passwordValid = await bcrypt.compare(password, configuredPassword);
+    } else {
+      passwordValid = password === configuredPassword;
+    }
+
+    if (!usernameValid || !passwordValid) {
+      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+    }
+
+    const token = jwt.sign({ sub: configuredUser }, authConfig.jwtSecret, { expiresIn: authConfig.tokenExpiresIn });
+    return res.json({ success: true, token });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Error en autenticación' });
+  }
+});
 
 // ========== PLATAFORMA API ROUTES ==========
 
@@ -143,7 +191,7 @@ app.get('/api/juegos/:id', async (req, res) => {
 });
 
 // POST /api/juegos - Crear nuevo juego
-app.post('/api/juegos', async (req, res) => {
+app.post('/api/juegos', authenticate, async (req, res) => {
   try {
     if (!dbInitialized) {
       return res.status(503).json({
@@ -182,7 +230,7 @@ app.post('/api/juegos', async (req, res) => {
 });
 
 // PUT /api/juegos/:id - Actualizar juego
-app.put('/api/juegos/:id', async (req, res) => {
+app.put('/api/juegos/:id', authenticate, async (req, res) => {
   try {
     if (!dbInitialized) {
       return res.status(503).json({
@@ -229,7 +277,7 @@ app.put('/api/juegos/:id', async (req, res) => {
 });
 
 // DELETE /api/juegos/:id - Eliminar juego
-app.delete('/api/juegos/:id', async (req, res) => {
+app.delete('/api/juegos/:id', authenticate, async (req, res) => {
   try {
     if (!dbInitialized) {
       return res.status(503).json({
@@ -259,6 +307,50 @@ app.delete('/api/juegos/:id', async (req, res) => {
       message: 'Error al eliminar el juego',
       error: error.message
     });
+  }
+});
+
+// ========== EXPORT API ROUTES ==========
+// GET /api/export/juegos - JSON
+app.get('/api/export/juegos', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({ success: false, message: 'Database not initialized' });
+    }
+    const juegos = await db.getAllJuegos();
+    res.setHeader('Content-Disposition', 'attachment; filename="juegos.json"');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.status(200).send(JSON.stringify(juegos, null, 2));
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Error al exportar juegos (JSON)' });
+  }
+});
+
+// GET /api/export/juegos.csv - CSV
+app.get('/api/export/juegos.csv', async (req, res) => {
+  try {
+    if (!dbInitialized) {
+      return res.status(503).json({ success: false, message: 'Database not initialized' });
+    }
+    const juegos = await db.getAllJuegos();
+    const header = ['id', 'titulo', 'plataforma_id', 'plataforma_nombre', 'genero_id', 'genero_nombre'];
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (/[",\n]/.test(str)) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    };
+    const lines = [header.join(',')].concat(
+      juegos.map(j => header.map(k => escapeCsv(j[k])).join(','))
+    );
+    const csv = lines.join('\n');
+    res.setHeader('Content-Disposition', 'attachment; filename="juegos.csv"');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    return res.status(200).send(csv);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Error al exportar juegos (CSV)' });
   }
 });
 

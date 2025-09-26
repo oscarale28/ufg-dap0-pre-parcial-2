@@ -14,7 +14,14 @@
 
         <header>
             <h1>🎮 ESTIM</h1>
-            <button id="addGameBtn" class="btn btn-primary">+ Agregar Juego</button>
+            <div class="header-actions">
+                <div class="export-buttons">
+                    <button id="exportJsonBtn" class="btn btn-secondary">📄 JSON</button>
+                    <button id="exportCsvBtn" class="btn btn-secondary">📊 CSV</button>
+                </div>
+                <button id="addGameBtn" class="btn btn-primary">+ Agregar Juego</button>
+                <button id="loginBtn" class="btn btn-secondary">🔐 Login</button>
+            </div>
         </header>
 
         <main class="container">
@@ -72,6 +79,30 @@
                         <button type="button" id="cancelDeleteBtn" class="btn btn-secondary">Cancelar</button>
                         <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Eliminar</button>
                     </div>
+                </div>
+            </section>
+
+            <!-- Modal de login -->
+            <section id="loginModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Iniciar Sesión</h2>
+                        <span class="close">&times;</span>
+                    </div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="username">Usuario</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="cancelLoginBtn" class="btn btn-secondary">Cancelar</button>
+                            <button type="submit" id="submitLoginBtn" class="btn btn-primary">Iniciar Sesión</button>
+                        </div>
+                    </form>
                 </div>
             </section>
         </main>
